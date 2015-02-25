@@ -1,0 +1,29 @@
+#version 400 core
+
+out vec4 color;
+
+uniform vec3 cd = vec3(0.5, 0.2, 0.7);
+uniform vec3 cs = vec3(0.7);
+uniform float exponent = 128.0;
+
+in VS_OUT
+{
+	vec3 vs_normal;
+	vec3 vs_light;
+	vec3 vs_eye;
+	
+	vec3 ms_coord;
+} fs_in;
+
+void main()
+{
+	vec3 reflection = reflect(-(fs_in.vs_light), fs_in.vs_normal);
+	
+	vec3 diffuseColor = max(dot(fs_in.vs_normal, fs_in.vs_light), 0.0) * cd;
+	vec3 specularColor = pow(max(dot(reflection, fs_in.vs_eye), 0.0), exponent) * cs;
+
+	color = vec4(diffuseColor + specularColor, 1.0);
+	//color = vec4(1.0);
+	//color = vec4(fs_in.ms_coord, 1.0);
+	
+}

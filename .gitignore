@@ -45,3 +45,4 @@ Debug/glew32.dll
 Debug/glfw3.dll
 Debug/GLoom.exe
 *.o
+/Debug/

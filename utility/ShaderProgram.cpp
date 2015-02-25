@@ -11,6 +11,10 @@
 
 void ShaderProgram::linkProgram()
 {
+	glBindAttribLocation(program, 0, "vertex"); errorWrapper.printError();
+	glBindAttribLocation(program, 1, "normal"); errorWrapper.printError();
+	glBindAttribLocation(program, 3, "uv"); errorWrapper.printError();
+
 	glLinkProgram(program);
 	errorWrapper.printError();
 
