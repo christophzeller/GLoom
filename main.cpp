@@ -36,15 +36,15 @@ int main(int argc, char** argv)
 	std::cout << "start" << std::endl;
 	if (!glfwInit())
 	{
-		std::cout << "kaputt 1" << std::endl;
+		std::cout << "glfw init failed" << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
-	GLFWwindow* window = glfwCreateWindow(640, 480, "", 0, 0);
+	GLFWwindow* window = glfwCreateWindow(640, 480, "Cube", 0, 0);
 
 	if (!window)
 	{
-		std::cout << "kaputt 2" << std::endl;
+		std::cout << "window creation failed" << std::endl;
 		glfwTerminate();
 		exit(EXIT_FAILURE);
 	}
@@ -54,7 +54,11 @@ int main(int argc, char** argv)
 	glfwSwapInterval(1);
 	glfwSetKeyCallback(window, key_callback);
 
-	glewInit();
+	GLenum glewError = glewInit();
+	if (glewError != GLEW_OK)
+	{
+		std::cout << glewGetErrorString(glewError) << std::endl;
+	}
 
 	ErrorWrapper e;
 
@@ -71,15 +75,15 @@ int main(int argc, char** argv)
 	p.addShader(GL_FRAGMENT_SHADER, fs_source.c_str());
 	p.linkProgram();
 
-	glUseProgram(p.getProgram());
+	glUseProgram(p.getProgram()); e.printError(__FILE__, __LINE__);
 
 	GLuint vao[2];
-    glGenVertexArrays(2, vao); e.printError();
-    glBindVertexArray(vao[0]); e.printError();
-    glBindVertexArray(vao[1]); e.printError();
+    glGenVertexArrays(2, vao); e.printError( __FILE__, __LINE__ );
+    glBindVertexArray(vao[0]); e.printError(__FILE__, __LINE__);
+    glBindVertexArray(vao[1]); e.printError(__FILE__, __LINE__);
 
-    glEnable(GL_DEPTH_TEST); e.printError();
-    glDepthFunc(GL_LESS); e.printError();
+    glEnable(GL_DEPTH_TEST); e.printError(__FILE__, __LINE__);
+    glDepthFunc(GL_LESS); e.printError(__FILE__, __LINE__);
 
 	glm::vec4 colorV4(0.3, 0.3, 0.35, 1.0);
 	glm::vec4 depth(1.0);
@@ -93,37 +97,49 @@ int main(int argc, char** argv)
 
 	glm::mat4 M = glm::mat4(1.0);
 	glm::mat4 V = glm::lookAt(eye, center, up);
+	glm::mat4 MV = V * M;
 
 	GLfloat fov = 30.0f;
-
 	fov = glm::radians(fov);
 	glm::mat4 P = glm::perspective(fov, (4.0f / 3.0f), 1.0f, 50.0f);
 
-	glm::mat4 MV = V * M;
+
+
+	glEnableVertexAttribArray(0); e.printError(__FILE__, __LINE__);
+	glEnableVertexAttribArray(1); e.printError(__FILE__, __LINE__);
+
+//	GLint l = glGetUniformLocation(p.getProgram(), "MV"); e.printError(__FILE__, __LINE__);
+//	std::cout << "uniform MV location " << l << std::endl;
+
+	double t = 0.0;
 
 	while (!glfwWindowShouldClose(window))
 	{
-		glClearBufferfv(GL_COLOR, 0, glm::value_ptr(colorV4)); e.printError(); //std::cout << "1" << std::endl;
-		glClearBufferfv(GL_DEPTH, 0, glm::value_ptr(depth)); e.printError();
+		double angle = glm::radians(t);
 
-		glBindBuffer(GL_ARRAY_BUFFER, c.getVertexBuffer()); e.printError(); //std::cout << "2" << std::endl;
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0); e.printError(); //std::cout << "3" << std::endl;
-		glEnableVertexAttribArray(0);
+		M = glm::mat4(1.0)* glm::rotate((float)angle, up);;
+		MV = V * M;
 
-		glBindBuffer(GL_ARRAY_BUFFER, c.getNormalBuffer()); e.printError(); //std::cout << "4" << std::endl;
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0); e.printError(); //std::cout << "5" << std::endl;
-		glEnableVertexAttribArray(1);
+		glClearBufferfv(GL_COLOR, 0, glm::value_ptr(colorV4)); e.printError(__FILE__, __LINE__);
+		glClearBufferfv(GL_DEPTH, 0, glm::value_ptr(depth)); e.printError(__FILE__, __LINE__);
 
-		glUniformMatrix4fv(10, 1, GL_FALSE, glm::value_ptr(MV)); e.printError(); //std::cout << "6" << std::endl;
-//		glUniformMatrix4fv(11, 1, GL_FALSE, glm::value_ptr(V)); e.printError(); std::cout << "7" << std::endl;
+		glBindBuffer(GL_ARRAY_BUFFER, c.getVertexBuffer()); e.printError(__FILE__, __LINE__);
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0); e.printError(__FILE__, __LINE__);
 
-		glUniformMatrix4fv(12, 1, GL_FALSE, glm::value_ptr(P)); e.printError(); //std::cout << "8" << std::endl;
+		glBindBuffer(GL_ARRAY_BUFFER, c.getNormalBuffer()); e.printError(__FILE__, __LINE__);
 
-		glDrawArrays(GL_TRIANGLES, 0, 36); e.printError(); //std::cout << "9" << std::endl;
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0); e.printError(__FILE__, __LINE__);
 
-//		glUseProgram(s.getProgram()); e.printError();
-//		glDrawArrays(GL_TRIANGLES, 0, 3); e.printError();
+		GLint MVloc = glGetUniformLocation(p.getProgram(), "MV"); e.printError(__FILE__, __LINE__);
+		glUniformMatrix4fv(MVloc, 1, GL_FALSE, glm::value_ptr(MV)); e.printError(__FILE__, __LINE__);
 
+		GLint Ploc = glGetUniformLocation(p.getProgram(), "P"); e.printError(__FILE__, __LINE__);
+		glUniformMatrix4fv(Ploc, 1, GL_FALSE, glm::value_ptr(P)); e.printError(__FILE__, __LINE__);
+
+		glDrawArrays(GL_TRIANGLES, 0, 36); e.printError(__FILE__, __LINE__);
+
+		t += 1.0;
+		// loop
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
