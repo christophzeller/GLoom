@@ -13,6 +13,7 @@
 class ErrorWrapper
 {
 public:
+	void printError(const char* file, const int line);
 	void printError();
 	ErrorWrapper();
 	virtual ~ErrorWrapper();
