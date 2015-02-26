@@ -14,6 +14,7 @@ class Cube: public GeometricObject
 {
 public:
 	virtual void loadMesh();
+	virtual void freeMesh();
 	Cube();
 	virtual ~Cube();
 };
