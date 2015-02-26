@@ -8,6 +8,14 @@
 #include "ErrorWrapper.h"
 #include <iostream>
 
+void ErrorWrapper::printError(const char* file, const int line)
+{
+	GLenum code = glGetError();
+	if (code != 0)
+		std::cout << code << " " << glewGetErrorString(code) << "@" << file << ":" << line << std::endl;
+
+}
+
 void ErrorWrapper::printError()
 {
 	GLenum code = glGetError();
