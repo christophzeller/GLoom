@@ -15,6 +15,7 @@
 
 
 #include "utility/ShaderProgram.h"
+#include "utility/Texture.h"
 
 #include "geometry/Cube.h"
 
@@ -49,6 +50,8 @@ int main(int argc, char** argv)
 		exit(EXIT_FAILURE);
 	}
 
+	glfwWindowHint(GLFW_SAMPLES, 4);
+
 
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
@@ -63,10 +66,12 @@ int main(int argc, char** argv)
 	ErrorWrapper e;
 
 	std::ifstream vsSourceFile("shader/phong.vertex");
+//	std::ifstream vsSourceFile("shader/singletri.vertex");
 	std::string vs_source( (std::istreambuf_iterator<char>(vsSourceFile) ),
 					   (std::istreambuf_iterator<char>()    ) );
 
 	std::ifstream fsSourceFile("shader/phong.fragment");
+//	std::ifstream fsSourceFile("shader/singletri.fragment");
 	std::string fs_source( (std::istreambuf_iterator<char>(fsSourceFile) ),
 						   (std::istreambuf_iterator<char>()    ) );
 
@@ -90,23 +95,34 @@ int main(int argc, char** argv)
 
 	Cube c;
 	c.loadMesh();
+	c.setPosition(glm::vec3(1.0, 0.0, 0.0));
 
-	glm::vec3 eye = glm::vec3(5.0, 2.0, 5.0);
+	Texture tex;
+	tex.allocate();
+	tex.loadTexture();
+
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, tex.getTexture());
+
+	glm::vec3 eye = glm::vec3(0.0, 2.0, -10.0);
 	glm::vec3 center = glm::vec3(0.0, 0.0, 0.0);
 	glm::vec3 up = glm::vec3(0.0, 1.0, 0.0);
 
-	glm::mat4 M = glm::mat4(1.0);
+	glm::mat4 M;
 	glm::mat4 V = glm::lookAt(eye, center, up);
-	glm::mat4 MV = V * M;
+	glm::mat4 MV;
 
 	GLfloat fov = 30.0f;
 	fov = glm::radians(fov);
-	glm::mat4 P = glm::perspective(fov, (4.0f / 3.0f), 1.0f, 50.0f);
+	glm::mat4 P = glm::perspective(fov, (4.0f / 3.0f), 1.0f, 150.0f);
 
-
+	c.scaleUniform(30.0f);
 
 	glEnableVertexAttribArray(0); e.printError(__FILE__, __LINE__);
 	glEnableVertexAttribArray(1); e.printError(__FILE__, __LINE__);
+	glEnableVertexAttribArray(3); e.printError(__FILE__, __LINE__);
+
+	glEnable(GL_MULTISAMPLE);
 
 //	GLint l = glGetUniformLocation(p.getProgram(), "MV"); e.printError(__FILE__, __LINE__);
 //	std::cout << "uniform MV location " << l << std::endl;
@@ -117,7 +133,13 @@ int main(int argc, char** argv)
 	{
 		double angle = glm::radians(t);
 
-		M = glm::mat4(1.0)* glm::rotate((float)angle, up);;
+
+//		c.translate(glm::vec3(0.0, 0.0, glm::sin(angle)));
+		c.rotate(angle, glm::vec3(0.0, 1.0, 0.0));
+
+		M = c.getTranslationMatrix() * c.getRotationMatrix() * c.getScaleMatrix();
+
+//		M = glm::mat4(1.0)* glm::rotate((float)angle, up);;
 		MV = V * M;
 
 		glClearBufferfv(GL_COLOR, 0, glm::value_ptr(colorV4)); e.printError(__FILE__, __LINE__);
@@ -127,16 +149,22 @@ int main(int argc, char** argv)
 		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0); e.printError(__FILE__, __LINE__);
 
 		glBindBuffer(GL_ARRAY_BUFFER, c.getNormalBuffer()); e.printError(__FILE__, __LINE__);
-
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0); e.printError(__FILE__, __LINE__);
+
+		glBindBuffer(GL_ARRAY_BUFFER, c.getUVBuffer()); e.printError(__FILE__, __LINE__);
+		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0); e.printError(__FILE__, __LINE__);
 
 		GLint MVloc = glGetUniformLocation(p.getProgram(), "MV"); e.printError(__FILE__, __LINE__);
 		glUniformMatrix4fv(MVloc, 1, GL_FALSE, glm::value_ptr(MV)); e.printError(__FILE__, __LINE__);
+
+		GLint Vloc = glGetUniformLocation(p.getProgram(), "V"); e.printError(__FILE__, __LINE__);
+		glUniformMatrix4fv(Vloc, 1, GL_FALSE, glm::value_ptr(V)); e.printError(__FILE__, __LINE__);
 
 		GLint Ploc = glGetUniformLocation(p.getProgram(), "P"); e.printError(__FILE__, __LINE__);
 		glUniformMatrix4fv(Ploc, 1, GL_FALSE, glm::value_ptr(P)); e.printError(__FILE__, __LINE__);
 
 		glDrawArrays(GL_TRIANGLES, 0, 36); e.printError(__FILE__, __LINE__);
+//		glDrawArrays(GL_TRIANGLES, 0, 3); e.printError(__FILE__, __LINE__);
 
 		t += 1.0;
 		// loop
@@ -144,6 +172,8 @@ int main(int argc, char** argv)
 		glfwPollEvents();
 	}
 
+
+	tex.free();
 
 	glfwDestroyWindow(window);
 	return 0;

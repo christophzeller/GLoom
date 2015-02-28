@@ -3,8 +3,10 @@
 out vec4 color;
 
 uniform vec3 cd = vec3(0.5, 0.2, 0.7);
-uniform vec3 cs = vec3(0.7);
-uniform float exponent = 128.0;
+uniform vec3 cs = vec3(1.0);
+uniform float exponent = 512.0;
+
+uniform sampler2D texture_cd;
 
 in VS_OUT
 {
@@ -13,6 +15,7 @@ in VS_OUT
 	vec3 vs_eye;
 	
 	vec3 ms_coord;
+	vec2 uv;
 } fs_in;
 
 void main()
@@ -26,4 +29,5 @@ void main()
 	//color = vec4(1.0);
 	//color = vec4(fs_in.ms_coord, 1.0);
 	
+	color = texture(texture_cd, fs_in.uv);
 }

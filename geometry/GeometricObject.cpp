@@ -19,7 +19,7 @@ GLuint GeometricObject::uvBuffer = 0;
 //}
 
 GeometricObject::GeometricObject()
-	: modelMatrix(1), worldSpacePosition(0), color(1)
+	: translationMatrix(1.0f), rotationMatrix(1.0f), scaleMatrix(1.0f), worldSpacePosition(0), color(1)
 {
 	// TODO Auto-generated constructor stub
 

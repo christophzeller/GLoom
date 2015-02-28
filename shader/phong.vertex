@@ -9,7 +9,7 @@ layout (location = 10) uniform mat4 MV;
 layout (location = 11) uniform mat4 V;
 layout (location = 12) uniform mat4 P;
 
-uniform vec3 ws_light = vec3(35.0, 15.0, 25.0);
+uniform vec3 ws_light = vec3(10.0, 8.0, 15.0);
 
 out VS_OUT
 {
@@ -18,18 +18,22 @@ out VS_OUT
 	vec3 vs_eye;
 	
 	vec3 ms_coord;
+	
+	vec2 uv;
 } vs_out;
 
 void main()
 {
 	vec4 vs_position = MV * vertex;
-	vec3 vs_light = mat3(MV) * ws_light;
+	vec3 vs_light = mat3(V) * ws_light;
 	
 	vs_out.vs_normal = normalize( mat3(MV) * normal );
 	vs_out.vs_light = normalize( vs_light - vs_position.xyz );
 	vs_out.vs_eye = normalize( -vs_position.xyz );
 	
 	vs_out.ms_coord = vertex;
+	
+	vs_out.uv = uv;
 
 	gl_Position = P * vs_position;
 }
