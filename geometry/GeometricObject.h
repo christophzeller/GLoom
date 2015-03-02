@@ -21,6 +21,8 @@ class GeometricObject
 public:
 
 	virtual void loadMesh() = 0;
+	virtual void freeMesh() = 0;
+	virtual void drawMesh() = 0;
 
 	inline void setPosition(const glm::vec3& p)
 	{
@@ -42,7 +44,8 @@ public:
 	// TODO: kaputt
 	inline void scaleUniform(GLfloat s)
 	{
-		scaleMatrix = scaleMatrix * s;
+		scaleMatrix = glm::scale(glm::mat4(1.0), glm::vec3(s, s, s));
+//		scaleMatrix = scaleMatrix * s;
 	}
 
 	inline const glm::mat4& getTranslationMatrix()
@@ -75,10 +78,10 @@ public:
 	virtual ~GeometricObject();
 
 protected:
-	static GLuint vertexBuffer;
-	static GLuint normalBuffer;
-	static GLuint tangentBuffer;
-	static GLuint uvBuffer;
+	GLuint vertexBuffer;
+	GLuint normalBuffer;
+	GLuint tangentBuffer;
+	GLuint uvBuffer;
 
 	glm::mat4 translationMatrix;
 	glm::mat4 rotationMatrix;
@@ -89,6 +92,7 @@ protected:
 	glm::vec4 color;
 
 	ErrorWrapper err;
+	// Material* material;
 };
 
 #endif /* GEOMETRICOBJECT_H_ */

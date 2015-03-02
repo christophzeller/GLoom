@@ -6,6 +6,12 @@
  */
 
 #include "Texture.h"
+#include <glm/glm.hpp>
+
+#include "noise/noise.h"
+
+#include <iostream>
+#include <fstream>
 
 void Texture::allocate()
 {
@@ -21,40 +27,51 @@ void Texture::free()
 void Texture::loadTexture()
 {
 	// blue/white checkerboard
-	GLfloat data[] =
-		{
-			0.0f, 0.0f, 1.0f, 1.0f,
-			0.0f, 0.0f, 1.0f, 1.0f,
-			1.0f, 1.0f, 1.0f, 1.0f,
-			1.0f, 1.0f, 1.0f, 1.0f,
+//	GLfloat data[] =
+//		{
+//			0.0f, 0.0f, 1.0f, 1.0f,
+//			0.0f, 0.0f, 1.0f, 1.0f,
+//			1.0f, 1.0f, 1.0f, 1.0f,
+//			1.0f, 1.0f, 1.0f, 1.0f,
+//
+//			0.0f, 0.0f, 1.0f, 1.0f,
+//			0.0f, 0.0f, 1.0f, 1.0f,
+//			1.0f, 1.0f, 1.0f, 1.0f,
+//			1.0f, 1.0f, 1.0f, 1.0f,
+//
+//			1.0f, 1.0f, 1.0f, 1.0f,
+//			1.0f, 1.0f, 1.0f, 1.0f,
+//			0.0f, 0.0f, 1.0f, 1.0f,
+//			0.0f, 0.0f, 1.0f, 1.0f,
+//
+//			1.0f, 1.0f, 1.0f, 1.0f,
+//			1.0f, 1.0f, 1.0f, 1.0f,
+//			0.0f, 0.0f, 1.0f, 1.0f,
+//			0.0f, 0.0f, 1.0f, 1.0f
+//
+//		};
+//	int size = 4;
 
-			0.0f, 0.0f, 1.0f, 1.0f,
-			0.0f, 0.0f, 1.0f, 1.0f,
-			1.0f, 1.0f, 1.0f, 1.0f,
-			1.0f, 1.0f, 1.0f, 1.0f,
+	GLfloat* data;
+	int size = 128;
+	data = new GLfloat[size * size * 4];
 
-			1.0f, 1.0f, 1.0f, 1.0f,
-			1.0f, 1.0f, 1.0f, 1.0f,
-			0.0f, 0.0f, 1.0f, 1.0f,
-			0.0f, 0.0f, 1.0f, 1.0f,
 
-			1.0f, 1.0f, 1.0f, 1.0f,
-			1.0f, 1.0f, 1.0f, 1.0f,
-			0.0f, 0.0f, 1.0f, 1.0f,
-			0.0f, 0.0f, 1.0f, 1.0f
+	generate(data, size);
 
-		};
 
-	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA, 4, 4); e.printError(__FILE__, __LINE__);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA, size, size); e.printError(__FILE__, __LINE__);
 
 	glTexSubImage2D(GL_TEXTURE_2D,
 			0,
 			0, 0,
-			4, 4,
+			size, size,
 			GL_RGBA,
 			GL_FLOAT,
 			data);
 	e.printError(__FILE__, __LINE__);
+
+	delete[] data;
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);e.printError(__FILE__, __LINE__);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);e.printError(__FILE__, __LINE__);
@@ -68,7 +85,30 @@ void Texture::loadTexture()
 //	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 2, 2, 0, GL_RGBA32F, GL_FLOAT, data); e.printError(__FILE__, __LINE__);
 }
 
-Texture::Texture() : texture(0)
+void Texture::generate(GLfloat* data, int size)
+{
+	std::cout << "generating texture... " << size * size * 4 << std::endl;
+	for (int i = 0; i < size; i++)
+	{
+		for (int j = 0; j < size; j++)
+		{
+			int b = (i * (size * 4)) + (j * (4));
+			data[b + 0] = 0.0f;
+			data[b + 1] = 0.0f;
+			data[b + 2] = 1.0f;
+			data[b + 3] = 1.0f;
+		}
+	}
+	std::cout << "done" << std::endl;
+}
+
+
+void Texture::readFile(GLfloat* data)
+{
+
+}
+
+Texture::Texture() : texture(0), file()
 {
 	// TODO Auto-generated constructor stub
 

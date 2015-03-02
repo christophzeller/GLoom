@@ -18,6 +18,18 @@ in VS_OUT
 	vec2 uv;
 } fs_in;
 
+
+uniform float er = 5.0;
+uniform vec3 cr = vec3(0.1, 0.7, 0.2);
+
+vec3 calculateRim(vec3 N, vec3 V)
+{
+	float f = 1.0 - dot(N, V);
+	f = smoothstep(0.0, 1.0, f);
+	f = pow(f, er);
+	return f * cr;
+}
+
 void main()
 {
 	vec3 reflection = reflect(-(fs_in.vs_light), fs_in.vs_normal);
@@ -25,9 +37,11 @@ void main()
 	vec3 diffuseColor = max(dot(fs_in.vs_normal, fs_in.vs_light), 0.0) * cd;
 	vec3 specularColor = pow(max(dot(reflection, fs_in.vs_eye), 0.0), exponent) * cs;
 
-	color = vec4(diffuseColor + specularColor, 1.0);
+	color = vec4(diffuseColor + specularColor + calculateRim(fs_in.vs_normal, fs_in.vs_eye), 1.0);
 	//color = vec4(1.0);
 	//color = vec4(fs_in.ms_coord, 1.0);
 	
-	color = texture(texture_cd, fs_in.uv);
+	//color = texture(texture_cd, fs_in.uv);
+	//color = vec4(calculateRim(fs_in.vs_normal, fs_in.vs_eye), 1.0);
 }
+

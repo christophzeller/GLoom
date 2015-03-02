@@ -17,17 +17,27 @@
 #include "utility/ShaderProgram.h"
 #include "utility/Texture.h"
 
+#include "geometry/GeometricObject.h"
 #include "geometry/Cube.h"
+#include "geometry/Octahedron.h"
 
 #include <iostream>
 #include <fstream>
 #include <string>
+
+#include <vector>
 
 
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, 1);
+}
+
+static void cursorCallback(GLFWwindow* window, double xPos, double yPos)
+{
+//	std::cout << xPos << ":" << yPos << std::endl;
+
 }
 
 
@@ -56,6 +66,8 @@ int main(int argc, char** argv)
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
 	glfwSetKeyCallback(window, key_callback);
+
+	glfwSetCursorPosCallback(window, cursorCallback);
 
 	GLenum glewError = glewInit();
 	if (glewError != GLEW_OK)
@@ -94,8 +106,12 @@ int main(int argc, char** argv)
 	glm::vec4 depth(1.0);
 
 	Cube c;
-	c.loadMesh();
 	c.setPosition(glm::vec3(1.0, 0.0, 0.0));
+	c.scaleUniform(1.5f);
+
+	Cube cc;
+	cc.setPosition(glm::vec3(2.0, 1.0, 3.5));
+	cc.scaleUniform(0.5f);
 
 	Texture tex;
 	tex.allocate();
@@ -103,6 +119,15 @@ int main(int argc, char** argv)
 
 	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_2D, tex.getTexture());
+
+	Octahedron o;
+	o.setPosition(glm::vec3(-1.0, -0.5, -2.0));
+	o.scaleUniform(0.75f);
+
+	Octahedron oo;
+	oo.setPosition(glm::vec3(-3.0, 1.0, 6.0));
+	oo.scaleUniform(2.0f);
+	oo.rotate(90.0f, glm::vec3(0.0, 0.0, 1.0));
 
 	glm::vec3 eye = glm::vec3(0.0, 2.0, -10.0);
 	glm::vec3 center = glm::vec3(0.0, 0.0, 0.0);
@@ -116,8 +141,6 @@ int main(int argc, char** argv)
 	fov = glm::radians(fov);
 	glm::mat4 P = glm::perspective(fov, (4.0f / 3.0f), 1.0f, 150.0f);
 
-	c.scaleUniform(30.0f);
-
 	glEnableVertexAttribArray(0); e.printError(__FILE__, __LINE__);
 	glEnableVertexAttribArray(1); e.printError(__FILE__, __LINE__);
 	glEnableVertexAttribArray(3); e.printError(__FILE__, __LINE__);
@@ -127,46 +150,53 @@ int main(int argc, char** argv)
 //	GLint l = glGetUniformLocation(p.getProgram(), "MV"); e.printError(__FILE__, __LINE__);
 //	std::cout << "uniform MV location " << l << std::endl;
 
-	double t = 0.0;
+//	double t = 0.0;
+
+
+	std::vector<GeometricObject*> objects;
+	objects.push_back(&c);
+	objects.push_back(&cc);
+	objects.push_back(&o);
+	objects.push_back(&oo);
+
+	for (unsigned int i = 0; i < objects.size(); i++)
+		objects[i]->loadMesh();
+
+//	std::cout << objects.size() << std::endl;
+
+	GLint Ploc = glGetUniformLocation(p.getProgram(), "P"); e.printError(__FILE__, __LINE__);
+	GLint Vloc = glGetUniformLocation(p.getProgram(), "V"); e.printError(__FILE__, __LINE__);
+	GLint MVloc = glGetUniformLocation(p.getProgram(), "MV"); e.printError(__FILE__, __LINE__);
 
 	while (!glfwWindowShouldClose(window))
 	{
-		double angle = glm::radians(t);
-
-
-//		c.translate(glm::vec3(0.0, 0.0, glm::sin(angle)));
-		c.rotate(angle, glm::vec3(0.0, 1.0, 0.0));
-
-		M = c.getTranslationMatrix() * c.getRotationMatrix() * c.getScaleMatrix();
-
-//		M = glm::mat4(1.0)* glm::rotate((float)angle, up);;
-		MV = V * M;
-
+		double t = glfwGetTime() * 50.0f;
+//		std::cout << t << std::endl;
 		glClearBufferfv(GL_COLOR, 0, glm::value_ptr(colorV4)); e.printError(__FILE__, __LINE__);
 		glClearBufferfv(GL_DEPTH, 0, glm::value_ptr(depth)); e.printError(__FILE__, __LINE__);
 
-		glBindBuffer(GL_ARRAY_BUFFER, c.getVertexBuffer()); e.printError(__FILE__, __LINE__);
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0); e.printError(__FILE__, __LINE__);
-
-		glBindBuffer(GL_ARRAY_BUFFER, c.getNormalBuffer()); e.printError(__FILE__, __LINE__);
-		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0); e.printError(__FILE__, __LINE__);
-
-		glBindBuffer(GL_ARRAY_BUFFER, c.getUVBuffer()); e.printError(__FILE__, __LINE__);
-		glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0); e.printError(__FILE__, __LINE__);
-
-		GLint MVloc = glGetUniformLocation(p.getProgram(), "MV"); e.printError(__FILE__, __LINE__);
-		glUniformMatrix4fv(MVloc, 1, GL_FALSE, glm::value_ptr(MV)); e.printError(__FILE__, __LINE__);
-
-		GLint Vloc = glGetUniformLocation(p.getProgram(), "V"); e.printError(__FILE__, __LINE__);
 		glUniformMatrix4fv(Vloc, 1, GL_FALSE, glm::value_ptr(V)); e.printError(__FILE__, __LINE__);
-
-		GLint Ploc = glGetUniformLocation(p.getProgram(), "P"); e.printError(__FILE__, __LINE__);
 		glUniformMatrix4fv(Ploc, 1, GL_FALSE, glm::value_ptr(P)); e.printError(__FILE__, __LINE__);
 
-		glDrawArrays(GL_TRIANGLES, 0, 36); e.printError(__FILE__, __LINE__);
-//		glDrawArrays(GL_TRIANGLES, 0, 3); e.printError(__FILE__, __LINE__);
+//		c.translate(glm::vec3(0.0, 0.0, glm::sin(angle)));
+		double angle = glm::radians(t);
+		c.rotate(angle * 2, glm::vec3(0.0, 1.0, 0.0));
+		o.rotate(-angle, glm::vec3(0.0, 1.0, 0.0));
+		cc.rotate(angle * 0.5, glm::vec3(0.0, 0.0, 1.0));
+		oo.rotate(-angle, glm::vec3(0.0, 0.0, 1.0));
 
-		t += 1.0;
+		for (unsigned int i = 0; i < objects.size(); i++)
+		{
+			M = objects[i]->getTranslationMatrix() *
+				objects[i]->getRotationMatrix() *
+				objects[i]->getScaleMatrix();
+			MV = V * M;
+
+			glUniformMatrix4fv(MVloc, 1, GL_FALSE, glm::value_ptr(MV)); e.printError(__FILE__, __LINE__);
+			objects[i]->drawMesh();
+		}
+
+//		t += 1.0;
 		// loop
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -174,6 +204,9 @@ int main(int argc, char** argv)
 
 
 	tex.free();
+
+	for (unsigned int i = 0; i < objects.size(); i++)
+		objects[i]->freeMesh();
 
 	glfwDestroyWindow(window);
 	return 0;

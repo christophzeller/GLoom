@@ -9,7 +9,7 @@ layout (location = 10) uniform mat4 MV;
 layout (location = 11) uniform mat4 V;
 layout (location = 12) uniform mat4 P;
 
-uniform vec3 ws_light = vec3(10.0, 8.0, 15.0);
+uniform vec3 ws_light = vec3(0.0, 10.0, 0.0);
 
 out VS_OUT
 {

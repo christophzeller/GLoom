@@ -9,6 +9,25 @@
 
 #include <iostream>
 
+
+
+void Cube::drawMesh()
+{
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer); err.printError(__FILE__, __LINE__);
+//	glBindBuffer(GL_ARRAY_BUFFER, GLGeometricObject<Cube>::vertexBuffer); err.printError(__FILE__, __LINE__);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 0, 0); err.printError(__FILE__, __LINE__);
+
+	glBindBuffer(GL_ARRAY_BUFFER, normalBuffer); err.printError(__FILE__, __LINE__);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0); err.printError(__FILE__, __LINE__);
+
+	glBindBuffer(GL_ARRAY_BUFFER, uvBuffer); err.printError(__FILE__, __LINE__);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 0, 0); err.printError(__FILE__, __LINE__);
+
+
+	glDrawArrays(GL_TRIANGLES, 0, 36); err.printError(__FILE__, __LINE__);
+}
+
 void Cube::loadMesh()
 {
 	if (vertexBuffer == 0)
@@ -76,6 +95,10 @@ void Cube::loadMesh()
 
 		glBufferData(GL_ARRAY_BUFFER,  sizeof(vertices),  vertices,  GL_STATIC_DRAW); err.printError(__FILE__, __LINE__);
 	}
+//	else
+//	{
+//		std::cout << "using static member data" << std::endl;
+//	}
 
 
 
@@ -219,7 +242,7 @@ void Cube::freeMesh()
 }
 
 Cube::Cube()
-	: GeometricObject()
+	//: GLGeometricObject<Cube>()
 {
 	// TODO Auto-generated constructor stub
 
